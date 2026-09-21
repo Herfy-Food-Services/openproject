@@ -47,7 +47,7 @@ RSpec.shared_examples "sprint report work package table widget" do
 
   current_user { user }
 
-  subject(:rendered_component) { render_inline(described_class.new(sprint, project)) }
+  subject(:rendered_component) { render_inline(described_class.new(sprint, project, breakdown)) }
 
   let(:rendered_html) { rendered_component.to_html }
   let(:table_element) { rendered_component.at("opce-embedded-work-package-table") }
