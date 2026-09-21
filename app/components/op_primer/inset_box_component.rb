@@ -30,6 +30,8 @@
 
 module OpPrimer
   class InsetBoxComponent < Primer::Component
+    include OpPrimer::ComponentHelpers
+
     DEFAULT_SCHEME = :default
     SCHEME_MAPPINGS = {
       DEFAULT_SCHEME => { bg: :inset },
