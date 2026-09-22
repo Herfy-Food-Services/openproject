@@ -27,6 +27,7 @@
 //++
 
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation, inject } from '@angular/core';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 
 import {
   PartitionedQuerySpacePageComponent,
@@ -167,12 +168,25 @@ export class IFCViewerPageComponent
         this.cdRef.detectChanges();
       });
 
-    // When going back from "details" route to "list" route, handle the split screen right side
+    // When going back from "details" route to "list" route, handle the split screen right side.
+    // Scoped to actual route transitions (distinctUntilChanged on the details/list boolean),
+    // not every URL change - a filter-only query-param update also fires `changed$`, and at
+    // that point the query for the new filter hasn't reloaded yet, so `displayRepresentation`
+    // would read as stale/undefined and wrongly collapse the split screen for good (there's no
+    // code path that ever widens it back once collapsed).
     this.urlParams.changed$
-      .pipe(this.untilDestroyed())
-      .subscribe(():void => {
-        const dr = this.querySpace.query.value?.displayRepresentation;
-        this.updateSplitScreen((dr || bcfTableViewIdentifier) as BcfViewState);
+      .pipe(
+        map(() => this.urlParams.currentDetailsRouteParams() !== null),
+        distinctUntilChanged(),
+        this.untilDestroyed(),
+      )
+      .subscribe((isDetailsRoute):void => {
+        if (isDetailsRoute) {
+          return;
+        }
+
+        const dr = this.querySpace.query.value?.displayRepresentation ?? bcfSplitViewCardsIdentifier;
+        this.updateSplitScreen(dr as BcfViewState);
       });
   }
 
